@@ -57,6 +57,7 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 			image, logs, err = pack.Build.
 				WithNoPull().
 				WithBuildpacks(
+					settings.Buildpacks.Dep.Online,
 					settings.Buildpacks.DepEnsure.Online,
 				).
 				Execute(name, source)
@@ -77,7 +78,8 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 			logs, err = docker.Container.Logs.Execute(container.ID)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(logs).To(ContainSubstring("Gopkg.lock something"))
+			Expect(logs).To(ContainSubstring("Gopkg.lock"))
+			Expect(logs).To(ContainSubstring("vendor/github.com/ZiCog/shiny-thing"))
 		})
 	})
 }
