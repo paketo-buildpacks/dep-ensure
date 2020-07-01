@@ -1,0 +1,7 @@
+[[constraint]]
+  branch = "master"
+  name = "github.com/ZiCog/shiny-thing"
+
+[prune]
+  go-tests = true
+  unused-packages = true
