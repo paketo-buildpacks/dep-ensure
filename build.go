@@ -4,17 +4,15 @@ import (
 	"github.com/paketo-buildpacks/packit"
 )
 
-func Build() packit.BuildFunc {
+func Build(
+	logs LogEmitter,
+) packit.BuildFunc {
 
 	return func(context packit.BuildContext) (packit.BuildResult, error) {
+		logs.Title("%s %s", context.BuildpackInfo.Name, context.BuildpackInfo.Version)
 		return packit.BuildResult{
-			Plan: context.Plan,
-			Processes: []packit.Process{
-				{
-					Type:    "web",
-					Command: "command",
-				},
-			},
+			Layers:    nil,
+			Processes: nil,
 		}, nil
 	}
 }

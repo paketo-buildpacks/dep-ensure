@@ -9,9 +9,9 @@ import (
 
 func TestUnitGoBuild(t *testing.T) {
 	suite := spec.New("dep-ensure", spec.Report(report.Terminal{}))
-	// suite("Build", testBuild)
+	suite("Build", testBuild)
 	suite("Detect", testDetect)
-	// suite("GoBuildProcess", testGoBuildProcess)
+	suite("DepEnsureProcess", testDepEnsureProcess)
 	// suite("GoPathManager", testGoPathManager)
 	// suite("SourceDeleter", testSourceDeleter)
 	suite.Run(t)
