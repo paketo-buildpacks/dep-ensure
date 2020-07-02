@@ -27,7 +27,7 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 		workingDir, err = ioutil.TempDir("", "working-dir")
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(ioutil.WriteFile(filepath.Join(workingDir, "main.go"), nil, 0644)).To(Succeed())
+		Expect(ioutil.WriteFile(filepath.Join(workingDir, "Gopkg.toml"), nil, 0644)).To(Succeed())
 
 		detect = depensure.Detect()
 	})

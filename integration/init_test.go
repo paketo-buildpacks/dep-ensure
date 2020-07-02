@@ -22,6 +22,9 @@ var settings struct {
 		Dep struct {
 			Online string
 		}
+		GoDist struct {
+			Online string
+		}
 		DepEnsure struct {
 			Online  string
 			Offline string
@@ -32,7 +35,8 @@ var settings struct {
 		Name string
 	}
 	Config struct {
-		Dep string `json:"dep"`
+		Dep    string `json:"dep"`
+		GoDist string `json:"go-dist"`
 	}
 }
 
@@ -68,10 +72,15 @@ func TestIntegration(t *testing.T) {
 		Execute(root)
 	Expect(err).ToNot(HaveOccurred())
 
-	depPath := strings.Split(settings.Config.Dep, "/")
-	org := depPath[len(depPath)-2]
-	repo := depPath[len(depPath)-1]
+	depCnb := strings.Split(settings.Config.Dep, "/")
+	org := depCnb[len(depCnb)-2]
+	repo := depCnb[len(depCnb)-1]
 	settings.Buildpacks.Dep.Online, err = dagger.GetLatestCommunityBuildpack(org, repo)
+	Expect(err).ToNot(HaveOccurred())
+
+	// TODO once the dep cnb is rewritten, it shouldn't need `go`.
+	settings.Buildpacks.GoDist.Online, err = buildpackStore.Get.
+		Execute(settings.Config.GoDist)
 	Expect(err).ToNot(HaveOccurred())
 
 	SetDefaultEventuallyTimeout(10 * time.Second)
