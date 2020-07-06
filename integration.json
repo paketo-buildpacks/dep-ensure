@@ -1,4 +1,3 @@
 {
-  "go-dist": "github.com/paketo-buildpacks/go-dist",
-  "dep": "github.com/paketo-buildpacks/dep"
+  "dep": "./testdata/tmp-dep-cnb.tgz"
 }

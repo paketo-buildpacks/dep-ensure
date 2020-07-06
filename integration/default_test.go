@@ -57,7 +57,6 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 			image, logs, err = pack.Build.
 				WithNoPull().
 				WithBuildpacks(
-					settings.Buildpacks.GoDist.Online,
 					settings.Buildpacks.Dep.Online,
 					settings.Buildpacks.DepEnsure.Online,
 				).

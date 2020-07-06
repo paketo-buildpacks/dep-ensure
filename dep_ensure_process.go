@@ -32,8 +32,6 @@ func NewDepEnsureProcess(executable Executable, logs LogEmitter) DepEnsureProces
 
 func (p DepEnsureProcess) Execute(workspace, gopath string) error {
 	var err error
-	p.logs.Process("Executing build process")
-
 	tmpAppPath := filepath.Join(gopath, "src", "app")
 	err = os.MkdirAll(tmpAppPath, os.ModePerm)
 	if err != nil {

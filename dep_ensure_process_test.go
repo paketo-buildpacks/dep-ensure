@@ -70,6 +70,7 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 
 	it.After(func() {
 		Expect(os.RemoveAll(workspace)).To(Succeed())
+		Expect(os.RemoveAll(gopath)).To(Succeed())
 	})
 
 	context("Execute", func() {
@@ -98,7 +99,6 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 			_, err = os.Stat(filepath.Join(workspace, "vendor"))
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(buffer.String()).To(ContainSubstring("  Executing build process"))
 			Expect(buffer.String()).To(ContainSubstring("    Running 'dep ensure'"))
 		})
 

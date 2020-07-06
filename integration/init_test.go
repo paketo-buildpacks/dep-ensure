@@ -4,12 +4,10 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/cloudfoundry/dagger"
 	"github.com/paketo-buildpacks/occam"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
@@ -20,9 +18,6 @@ import (
 var settings struct {
 	Buildpacks struct {
 		Dep struct {
-			Online string
-		}
-		GoDist struct {
 			Online string
 		}
 		DepEnsure struct {
@@ -36,7 +31,6 @@ var settings struct {
 	}
 	Config struct {
 		Dep    string `json:"dep"`
-		GoDist string `json:"go-dist"`
 	}
 }
 
@@ -72,16 +66,8 @@ func TestIntegration(t *testing.T) {
 		Execute(root)
 	Expect(err).ToNot(HaveOccurred())
 
-	depCnb := strings.Split(settings.Config.Dep, "/")
-	org := depCnb[len(depCnb)-2]
-	repo := depCnb[len(depCnb)-1]
-	settings.Buildpacks.Dep.Online, err = dagger.GetLatestCommunityBuildpack(org, repo)
-	Expect(err).ToNot(HaveOccurred())
-
-	// TODO once the dep cnb is rewritten, it shouldn't need `go`.
-	settings.Buildpacks.GoDist.Online, err = buildpackStore.Get.
-		Execute(settings.Config.GoDist)
-	Expect(err).ToNot(HaveOccurred())
+	// todo: when dep is rewritten, point to real dep cnb in integration.json
+	settings.Buildpacks.Dep.Online = settings.Config.Dep
 
 	SetDefaultEventuallyTimeout(10 * time.Second)
 

@@ -32,6 +32,11 @@ func Build(
 			return packit.BuildResult{}, err
 		}
 
+		err = os.RemoveAll(gopath)
+		if err != nil {
+			return packit.BuildResult{}, fmt.Errorf("failed to delete temp gopath dir: %w", err)
+		}
+
 		return packit.BuildResult{
 			Layers:    nil,
 			Processes: nil,
