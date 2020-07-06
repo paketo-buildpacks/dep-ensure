@@ -99,8 +99,9 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 
 				it("returns an error", func() {
 					err := process.Execute(workspace, gopath)
-					Expect(buffer.String()).To(ContainSubstring("    dep ensure error on stdout\n    dep ensure error on stderr\n"))
-					Expect(err).To(MatchError("dep ensure failed: failed to execute"))
+					Expect(buffer.String()).To(ContainSubstring("dep ensure error on stdout\n"))
+					Expect(buffer.String()).To(ContainSubstring("dep ensure error on stderr\n"))
+					Expect(err).To(MatchError("'dep ensure' command failed: failed to execute"))
 				})
 			})
 		})

@@ -45,6 +45,8 @@ func (p DepEnsureProcess) Execute(workspace, gopath string) error {
 		return fmt.Errorf("failed to copy application source onto GOPATH: %w", err)
 	}
 
+	p.logs.Subprocess("Running 'dep ensure'")
+
 	buffer := bytes.NewBuffer(nil)
 	err = p.executable.Execute(pexec.Execution{
 		Args:   []string{"ensure"},
@@ -53,6 +55,11 @@ func (p DepEnsureProcess) Execute(workspace, gopath string) error {
 		Stderr: buffer,
 		Env:    append(os.Environ(), fmt.Sprintf("GOPATH=%s", gopath)),
 	})
+
+	if err != nil {
+		p.logs.Detail(buffer.String())
+		return fmt.Errorf("'dep ensure' command failed: %w", err)
+	}
 
 	return err
 }
