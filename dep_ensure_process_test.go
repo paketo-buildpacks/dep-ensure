@@ -42,7 +42,25 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 		err = ioutil.WriteFile(filepath.Join(workspace, "test.go"), nil, os.ModePerm)
 		Expect(err).NotTo(HaveOccurred())
 
+		err = os.MkdirAll(filepath.Join(workspace, "dir1", "dir2"), os.ModePerm)
+		Expect(err).NotTo(HaveOccurred())
+
+		err = ioutil.WriteFile(filepath.Join(workspace, "dir1", "dir2", "somefile.go"), nil, os.ModePerm)
+		Expect(err).NotTo(HaveOccurred())
+
 		executable = &fakes.Executable{}
+		executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
+			err = os.MkdirAll(filepath.Join(gopath, "src", "app", "vendor"), os.ModePerm)
+			if err != nil {
+				return err
+			}
+
+			if err := ioutil.WriteFile(filepath.Join(gopath, "src", "app", "Gopkg.lock"), nil, 0755); err != nil {
+				return err
+			}
+
+			return nil
+		}
 
 		buffer = bytes.NewBuffer(nil)
 		commandOutput = bytes.NewBuffer(nil)
@@ -56,6 +74,8 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 
 	context("Execute", func() {
 		it("succeeds", func() {
+			var err error
+
 			Expect(process.Execute(workspace, gopath)).To(Succeed())
 			Expect(executable.ExecuteCall.Receives.Execution).To(Equal(pexec.Execution{
 				Args:   []string{"ensure"},
@@ -65,11 +85,21 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 				Env:    append(os.Environ(), fmt.Sprintf("GOPATH=%s", gopath)),
 			}))
 
-			_, err := os.Stat(filepath.Join(gopath, "src", "app", "test.go"))
+			_, err = os.Stat(filepath.Join(gopath, "src", "app", "test.go"))
+			Expect(err).NotTo(HaveOccurred())
+
+			// make sure the file moves do not mess with src files
+			_, err = os.Stat(filepath.Join(workspace, "dir1", "dir2", "somefile.go"))
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = os.Stat(filepath.Join(workspace, "Gopkg.lock"))
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = os.Stat(filepath.Join(workspace, "vendor"))
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(buffer.String()).To(ContainSubstring("  Executing build process"))
-			Expect(buffer.String()).To(ContainSubstring(fmt.Sprintf("    Running 'dep ensure'")))
+			Expect(buffer.String()).To(ContainSubstring("    Running 'dep ensure'"))
 		})
 
 		context("failure cases", func() {

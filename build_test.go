@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"io/ioutil"
 	"os"
+	"errors"
 	"testing"
 
 	depensure "github.com/paketo-buildpacks/dep-ensure"
+	"github.com/paketo-buildpacks/dep-ensure/fakes"
 	"github.com/paketo-buildpacks/packit"
 	"github.com/sclevine/spec"
 
@@ -20,6 +22,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		layersDir  string
 		workingDir string
 		cnbDir     string
+		buildProcess *fakes.BuildProcess
 		logs       *bytes.Buffer
 		//timestamp  time.Time
 		build packit.BuildFunc
@@ -36,8 +39,10 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		workingDir, err = ioutil.TempDir("", "working-dir")
 		Expect(err).NotTo(HaveOccurred())
 
+		buildProcess = &fakes.BuildProcess{}
 		logs = bytes.NewBuffer(nil)
 		build = depensure.Build(
+			buildProcess,
 			depensure.NewLogEmitter(logs),
 		)
 	})
@@ -66,8 +71,11 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			Processes: nil,
 		}))
 
+		Expect(buildProcess.ExecuteCall.CallCount).To(Equal(1))
+		Expect(buildProcess.ExecuteCall.Receives.Workspace).To(Equal(workingDir))
+		Expect(buildProcess.ExecuteCall.Returns.Err).To(BeNil())
 		Expect(logs.String()).To(ContainSubstring("Some Buildpack some-version"))
-		Expect(logs.String()).To(ContainSubstring("Executing dep ensure"))
+		Expect(logs.String()).To(ContainSubstring("Executing build process"))
 	})
 
 	// context("when the workspace contents have not changed from a previous build", func() {
@@ -133,25 +141,25 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 	// 	})
 	// })
 
-	// context("failure cases", func() {
-	// 	context("when the build process fails", func() {
-	// 		it.Before(func() {
-	// 			buildProcess.ExecuteCall.Returns.Err = errors.New("failed to execute build process")
-	// 		})
+	context("failure cases", func() {
+		context("when the build process fails", func() {
+			it.Before(func() {
+				buildProcess.ExecuteCall.Returns.Err = errors.New("failed to execute build process")
+			})
 
-	// 		it("returns an error", func() {
-	// 			_, err := build(packit.BuildContext{
-	// 				WorkingDir: workingDir,
-	// 				CNBPath:    cnbDir,
-	// 				Stack:      "some-stack",
-	// 				BuildpackInfo: packit.BuildpackInfo{
-	// 					Name:    "Some Buildpack",
-	// 					Version: "some-version",
-	// 				},
-	// 				Layers: packit.Layers{Path: layersDir},
-	// 			})
-	// 			Expect(err).To(MatchError("failed to execute build process"))
-	// 		})
-	// 	})
-	// })
+			it("returns an error", func() {
+				_, err := build(packit.BuildContext{
+					WorkingDir: workingDir,
+					CNBPath:    cnbDir,
+					Stack:      "some-stack",
+					BuildpackInfo: packit.BuildpackInfo{
+						Name:    "Some Buildpack",
+						Version: "some-version",
+					},
+					Layers: packit.Layers{Path: layersDir},
+				})
+				Expect(err).To(MatchError("failed to execute build process"))
+			})
+		})
+	})
 }

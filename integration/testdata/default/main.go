@@ -1,5 +1,7 @@
 package main
 
-import _ "github.com/ZiCog/shiny-thing"
+import "github.com/ZiCog/shiny-thing/foo"
 
-func main() {}
+func main() {
+	foo.Do()
+}

@@ -61,5 +61,15 @@ func (p DepEnsureProcess) Execute(workspace, gopath string) error {
 		return fmt.Errorf("'dep ensure' command failed: %w", err)
 	}
 
+	err = os.RemoveAll(workspace)
+	if err != nil {
+		return fmt.Errorf("failed to delete workspace dir: %w", err)
+	}
+
+	err = fs.Copy(tmpAppPath, workspace)
+	if err != nil {
+		return fmt.Errorf("failed to copy from GOPATH back onto workspace: %w", err)
+	}
+
 	return err
 }
