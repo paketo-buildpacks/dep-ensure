@@ -10,7 +10,7 @@ import (
 
 //go:generate faux --interface BuildProcess --output fakes/build_process.go
 type BuildProcess interface {
-	Execute(workspace, goPath string) (err error)
+	Execute(workspace, goPath, gocachedir string) (err error)
 }
 
 func Build(
@@ -27,7 +27,14 @@ func Build(
 			return packit.BuildResult{}, fmt.Errorf("failed to create GOPATH dir: %w", err)
 		}
 
-		err = buildProcess.Execute(context.WorkingDir, gopath)
+		// todo: temporary - this has to be a layer
+		//depcachedir, err := ioutil.TempDir(os.TempDir(), "depcachedir")
+		depcachedirLayer, err := context.Layers.Get("depcachedir", packit.CacheLayer)
+		if err != nil {
+			return packit.BuildResult{}, err
+		}
+
+		err = buildProcess.Execute(context.WorkingDir, gopath, depcachedirLayer.Path)
 		if err != nil {
 			return packit.BuildResult{}, err
 		}
@@ -38,7 +45,7 @@ func Build(
 		}
 
 		return packit.BuildResult{
-			Layers:    nil,
+			Layers:    []packit.Layer{depcachedirLayer},
 			Processes: nil,
 		}, nil
 	}

@@ -30,7 +30,7 @@ func NewDepEnsureProcess(executable Executable, logs LogEmitter) DepEnsureProces
 	}
 }
 
-func (p DepEnsureProcess) Execute(workspace, gopath string) error {
+func (p DepEnsureProcess) Execute(workspace, gopath, depcachedir string) error {
 	var err error
 	tmpAppPath := filepath.Join(gopath, "src", "app")
 	err = os.MkdirAll(tmpAppPath, os.ModePerm)
@@ -51,7 +51,7 @@ func (p DepEnsureProcess) Execute(workspace, gopath string) error {
 		Dir:    tmpAppPath,
 		Stdout: buffer,
 		Stderr: buffer,
-		Env:    append(os.Environ(), fmt.Sprintf("GOPATH=%s", gopath)),
+		Env:    append(os.Environ(), fmt.Sprintf("GOPATH=%s", gopath), fmt.Sprintf("DEPCACHEDIR=%s", depcachedir)),
 	})
 
 	if err != nil {
@@ -59,9 +59,16 @@ func (p DepEnsureProcess) Execute(workspace, gopath string) error {
 		return fmt.Errorf("'dep ensure' command failed: %w", err)
 	}
 
-	err = os.RemoveAll(workspace)
+	files, err := filepath.Glob(filepath.Join(workspace, "*"))
 	if err != nil {
-		return fmt.Errorf("failed to delete workspace dir: %w", err)
+		panic(err)
+	}
+
+	for _, f := range files {
+		err = os.RemoveAll(f)
+		if err != nil {
+			return fmt.Errorf("failed to delete workspace dir: %w", err)
+		}
 	}
 
 	err = fs.Copy(tmpAppPath, workspace)

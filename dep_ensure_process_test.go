@@ -23,6 +23,7 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 
 		workspace     string
 		gopath        string
+		depcachedir   string
 		executable    *fakes.Executable
 		buffer        *bytes.Buffer
 		commandOutput *bytes.Buffer
@@ -37,6 +38,9 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 		Expect(err).NotTo(HaveOccurred())
 
 		gopath, err = ioutil.TempDir("", "gopath")
+		Expect(err).NotTo(HaveOccurred())
+
+		depcachedir, err = ioutil.TempDir("", "depcachedir")
 		Expect(err).NotTo(HaveOccurred())
 
 		err = ioutil.WriteFile(filepath.Join(workspace, "test.go"), nil, os.ModePerm)
@@ -77,13 +81,13 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 		it("succeeds", func() {
 			var err error
 
-			Expect(process.Execute(workspace, gopath)).To(Succeed())
+			Expect(process.Execute(workspace, gopath, depcachedir)).To(Succeed())
 			Expect(executable.ExecuteCall.Receives.Execution).To(Equal(pexec.Execution{
 				Args:   []string{"ensure"},
 				Dir:    filepath.Join(gopath, "src", "app"),
 				Stdout: commandOutput,
 				Stderr: commandOutput,
-				Env:    append(os.Environ(), fmt.Sprintf("GOPATH=%s", gopath)),
+				Env:    append(os.Environ(), fmt.Sprintf("GOPATH=%s", gopath), fmt.Sprintf("DEPCACHEDIR=%s", depcachedir)),
 			}))
 
 			_, err = os.Stat(filepath.Join(gopath, "src", "app", "test.go"))
@@ -113,7 +117,7 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 				})
 
 				it("returns an error", func() {
-					err := process.Execute(workspace, gopath)
+					err := process.Execute(workspace, gopath, depcachedir)
 					Expect(err).To(MatchError(ContainSubstring("permission denied")))
 				})
 			})
@@ -128,7 +132,7 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 				})
 
 				it("returns an error", func() {
-					err := process.Execute(workspace, gopath)
+					err := process.Execute(workspace, gopath, depcachedir)
 					Expect(buffer.String()).To(ContainSubstring("dep ensure error on stdout\n"))
 					Expect(buffer.String()).To(ContainSubstring("dep ensure error on stderr\n"))
 					Expect(err).To(MatchError("'dep ensure' command failed: failed to execute"))

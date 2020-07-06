@@ -2,10 +2,12 @@ package depensure_test
 
 import (
 	"bytes"
-	"io/ioutil"
-	"os"
 	"errors"
+	"io/ioutil"
+	"path/filepath"
+	"os"
 	"testing"
+	"time"
 
 	depensure "github.com/paketo-buildpacks/dep-ensure"
 	"github.com/paketo-buildpacks/dep-ensure/fakes"
@@ -24,7 +26,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		cnbDir     string
 		buildProcess *fakes.BuildProcess
 		logs       *bytes.Buffer
-		//timestamp  time.Time
+		timestamp  time.Time
 		build packit.BuildFunc
 	)
 
@@ -67,7 +69,23 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(result).To(Equal(packit.BuildResult{
-			Layers:    nil,
+			Layers: []packit.Layer{
+			{
+				Name:      "depcachedir",
+				Path:      filepath.Join(layersDir, "depcachedir"),
+				SharedEnv: packit.Environment{},
+				BuildEnv:  packit.Environment{},
+				LaunchEnv: packit.Environment{},
+				Build:     true,
+				Launch:    false,
+				Cache:     true,
+				Metadata: map[string]interface{}{
+					"built_at":      timestamp.Format(time.RFC3339Nano),
+					"command":       "some-start-command",
+					"workspace_sha": "some-workspace-sha",
+					},
+				},
+			},
 			Processes: nil,
 		}))
 
