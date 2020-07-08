@@ -54,7 +54,7 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 
 		executable = &fakes.Executable{}
 		executable.ExecuteCall.Stub = func(execution pexec.Execution) error {
-			err = os.MkdirAll(filepath.Join(gopath, "src", "app", "vendor"), os.ModePerm)
+			err = os.MkdirAll(filepath.Join(gopath, "src", "app", "vendor", "somedir"), os.ModePerm)
 			if err != nil {
 				return err
 			}
@@ -79,8 +79,6 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 
 	context("Execute", func() {
 		it("succeeds", func() {
-			var err error
-
 			Expect(process.Execute(workspace, gopath, depcachedir)).To(Succeed())
 			Expect(executable.ExecuteCall.Receives.Execution).To(Equal(pexec.Execution{
 				Args:   []string{"ensure"},
@@ -90,26 +88,35 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 				Env:    append(os.Environ(), fmt.Sprintf("GOPATH=%s", gopath), fmt.Sprintf("DEPCACHEDIR=%s", depcachedir)),
 			}))
 
-			_, err = os.Stat(filepath.Join(gopath, "src", "app", "test.go"))
-			Expect(err).NotTo(HaveOccurred())
+			Expect(filepath.Join(gopath, "src", "app", "test.go")).To(BeAnExistingFile())
 
 			// make sure the file moves do not mess with src files
-			_, err = os.Stat(filepath.Join(workspace, "dir1", "dir2", "somefile.go"))
-			Expect(err).NotTo(HaveOccurred())
-
-			_, err = os.Stat(filepath.Join(workspace, "Gopkg.lock"))
-			Expect(err).NotTo(HaveOccurred())
-
-			_, err = os.Stat(filepath.Join(workspace, "vendor"))
-			Expect(err).NotTo(HaveOccurred())
+			Expect(filepath.Join(workspace, "dir1", "dir2", "somefile.go")).To(BeAnExistingFile())
+			Expect(filepath.Join(workspace, "Gopkg.lock")).To(BeAnExistingFile())
+			Expect(filepath.Join(workspace, "vendor", "somedir")).To(BeADirectory())
 
 			Expect(buffer.String()).To(ContainSubstring("    Running 'dep ensure'"))
 		})
 
 		context("failure cases", func() {
-			context("when unable to write to workspace dir", func() {
+			context("when unable to write to the tmp gopath dir", func() {
 				it.Before(func() {
-					Expect(os.Chmod(workspace, 0000)).To(Succeed())
+					Expect(os.Chmod(gopath, 0000)).To(Succeed())
+				})
+
+				it.After(func() {
+					Expect(os.Chmod(gopath, 0777)).To(Succeed())
+				})
+
+				it("returns an error", func() {
+					err := process.Execute(workspace, gopath, depcachedir)
+					Expect(err).To(MatchError(ContainSubstring("permission denied")))
+				})
+			})
+
+			context("when unable to write vendor to workspace dir", func() {
+				it.Before(func() {
+					Expect(os.Chmod(workspace, 0555)).To(Succeed())
 				})
 
 				it.After(func() {
@@ -118,7 +125,7 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 
 				it("returns an error", func() {
 					err := process.Execute(workspace, gopath, depcachedir)
-					Expect(err).To(MatchError(ContainSubstring("permission denied")))
+					Expect(err).To(MatchError(ContainSubstring("failed to copy vendor")))
 				})
 			})
 

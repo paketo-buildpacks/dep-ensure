@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/cloudfoundry/dagger v0.0.0-20200701132236-7100ddbc1cde
 	github.com/onsi/gomega v1.10.1
 	github.com/paketo-buildpacks/occam v0.0.16
 	github.com/paketo-buildpacks/packit v0.2.0

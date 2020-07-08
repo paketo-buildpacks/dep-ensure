@@ -19,14 +19,12 @@ type Executable interface {
 type DepEnsureProcess struct {
 	executable Executable
 	logs       LogEmitter
-	// clock      chronos.Clock
 }
 
 func NewDepEnsureProcess(executable Executable, logs LogEmitter) DepEnsureProcess {
 	return DepEnsureProcess{
 		executable: executable,
 		logs:       logs,
-		// clock:      clock,
 	}
 }
 
@@ -59,21 +57,19 @@ func (p DepEnsureProcess) Execute(workspace, gopath, depcachedir string) error {
 		return fmt.Errorf("'dep ensure' command failed: %w", err)
 	}
 
-	files, err := filepath.Glob(filepath.Join(workspace, "*"))
+	err = os.RemoveAll(filepath.Join(workspace, "vendor"))
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to remove vendor from application source: %w", err)
 	}
 
-	for _, f := range files {
-		err = os.RemoveAll(f)
-		if err != nil {
-			return fmt.Errorf("failed to delete workspace dir: %w", err)
-		}
+	err = fs.Copy(filepath.Join(tmpAppPath, "vendor"), filepath.Join(workspace, "vendor"))
+	if err != nil {
+		return fmt.Errorf("failed to copy vendor back to application source: %w", err)
 	}
 
-	err = fs.Copy(tmpAppPath, workspace)
+	err = fs.Copy(filepath.Join(tmpAppPath, "Gopkg.lock"), filepath.Join(workspace, "Gopkg.lock"))
 	if err != nil {
-		return fmt.Errorf("failed to copy from GOPATH back onto workspace: %w", err)
+		return fmt.Errorf("failed to copy Gopkg.lock back to application source: %w", err)
 	}
 
 	return err

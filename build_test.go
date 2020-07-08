@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"errors"
 	"io/ioutil"
-	"path/filepath"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
 	depensure "github.com/paketo-buildpacks/dep-ensure"
 	"github.com/paketo-buildpacks/dep-ensure/fakes"
 	"github.com/paketo-buildpacks/packit"
+	"github.com/paketo-buildpacks/packit/chronos"
 	"github.com/sclevine/spec"
 
 	. "github.com/onsi/gomega"
@@ -21,13 +22,14 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
-		layersDir  string
-		workingDir string
-		cnbDir     string
+		layersDir    string
+		workingDir   string
+		cnbDir       string
 		buildProcess *fakes.BuildProcess
-		logs       *bytes.Buffer
-		timestamp  time.Time
-		build packit.BuildFunc
+		logs         *bytes.Buffer
+		timeStamp    time.Time
+		clock        chronos.Clock
+		build        packit.BuildFunc
 	)
 
 	it.Before(func() {
@@ -41,11 +43,17 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		workingDir, err = ioutil.TempDir("", "working-dir")
 		Expect(err).NotTo(HaveOccurred())
 
+		timeStamp = time.Now()
+		clock = chronos.NewClock(func() time.Time {
+			return timeStamp
+		})
+
 		buildProcess = &fakes.BuildProcess{}
 		logs = bytes.NewBuffer(nil)
 		build = depensure.Build(
 			buildProcess,
 			depensure.NewLogEmitter(logs),
+			clock,
 		)
 	})
 
@@ -70,20 +78,15 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 		Expect(result).To(Equal(packit.BuildResult{
 			Layers: []packit.Layer{
-			{
-				Name:      "depcachedir",
-				Path:      filepath.Join(layersDir, "depcachedir"),
-				SharedEnv: packit.Environment{},
-				BuildEnv:  packit.Environment{},
-				LaunchEnv: packit.Environment{},
-				Build:     true,
-				Launch:    false,
-				Cache:     true,
-				Metadata: map[string]interface{}{
-					"built_at":      timestamp.Format(time.RFC3339Nano),
-					"command":       "some-start-command",
-					"workspace_sha": "some-workspace-sha",
-					},
+				{
+					Name:      "depcachedir",
+					Path:      filepath.Join(layersDir, "depcachedir"),
+					SharedEnv: packit.Environment{},
+					BuildEnv:  packit.Environment{},
+					LaunchEnv: packit.Environment{},
+					Build:     false,
+					Launch:    false,
+					Cache:     true,
 				},
 			},
 			Processes: nil,
@@ -94,70 +97,8 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		Expect(buildProcess.ExecuteCall.Returns.Err).To(BeNil())
 		Expect(logs.String()).To(ContainSubstring("Some Buildpack some-version"))
 		Expect(logs.String()).To(ContainSubstring("Executing build process"))
+		Expect(logs.String()).To(ContainSubstring("Completed in "))
 	})
-
-	// context("when the workspace contents have not changed from a previous build", func() {
-	// 	it.Before(func() {
-	// 		layerContent := fmt.Sprintf("launch = true\n[metadata]\ncommand = \"some-start-command\"\nworkspace_sha = \"some-workspace-sha\"\nbuilt_at = %q\n", timestamp.Format(time.RFC3339Nano))
-	// 		Expect(ioutil.WriteFile(filepath.Join(layersDir, "targets.toml"), []byte(layerContent), 0644)).To(Succeed())
-	// 	})
-
-	// 	it("skips the build process", func() {
-	// 		result, err := build(packit.BuildContext{
-	// 			WorkingDir: workingDir,
-	// 			CNBPath:    cnbDir,
-	// 			Stack:      "some-stack",
-	// 			BuildpackInfo: packit.BuildpackInfo{
-	// 				Name:    "Some Buildpack",
-	// 				Version: "some-version",
-	// 			},
-	// 			Layers: packit.Layers{Path: layersDir},
-	// 		})
-	// 		Expect(err).NotTo(HaveOccurred())
-
-	// 		Expect(result).To(Equal(packit.BuildResult{
-	// 			Layers: []packit.Layer{
-	// 				{
-	// 					Name:      "targets",
-	// 					Path:      filepath.Join(layersDir, "targets"),
-	// 					SharedEnv: packit.Environment{},
-	// 					BuildEnv:  packit.Environment{},
-	// 					LaunchEnv: packit.Environment{},
-	// 					Build:     false,
-	// 					Launch:    true,
-	// 					Cache:     false,
-	// 					Metadata: map[string]interface{}{
-	// 						"built_at":      timestamp.Format(time.RFC3339Nano),
-	// 						"command":       "some-start-command",
-	// 						"workspace_sha": "some-workspace-sha",
-	// 					},
-	// 				},
-	// 				{
-	// 					Name:      "gocache",
-	// 					Path:      filepath.Join(layersDir, "gocache"),
-	// 					SharedEnv: packit.Environment{},
-	// 					BuildEnv:  packit.Environment{},
-	// 					LaunchEnv: packit.Environment{},
-	// 					Build:     false,
-	// 					Launch:    false,
-	// 					Cache:     true,
-	// 				},
-	// 			},
-	// 			Processes: []packit.Process{
-	// 				{
-	// 					Type:    "web",
-	// 					Command: "some-start-command",
-	// 					Direct:  true,
-	// 				},
-	// 			},
-	// 		}))
-
-	// 		Expect(calculator.SumCall.Receives.Path).To(Equal(workingDir))
-	// 		Expect(pathManager.SetupCall.CallCount).To(Equal(0))
-	// 		Expect(buildProcess.ExecuteCall.CallCount).To(Equal(0))
-	// 		Expect(pathManager.TeardownCall.CallCount).To(Equal(0))
-	// 	})
-	// })
 
 	context("failure cases", func() {
 		context("when the build process fails", func() {

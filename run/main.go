@@ -5,6 +5,7 @@ import (
 
 	depensure "github.com/paketo-buildpacks/dep-ensure"
 	"github.com/paketo-buildpacks/packit"
+	"github.com/paketo-buildpacks/packit/chronos"
 	"github.com/paketo-buildpacks/packit/pexec"
 )
 
@@ -13,10 +14,9 @@ func main() {
 	packit.Run(
 		depensure.Detect(),
 		depensure.Build(
-			depensure.NewDepEnsureProcess(
-				pexec.NewExecutable("dep"),
-				logEmitter,
-			),
-			logEmitter),
+			depensure.NewDepEnsureProcess(pexec.NewExecutable("dep"), logEmitter),
+			logEmitter,
+			chronos.DefaultClock,
+		),
 	)
 }
