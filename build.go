@@ -30,9 +30,9 @@ func Build(
 			return packit.BuildResult{}, err
 		}
 
-		gopath, err := ioutil.TempDir(os.TempDir(), "gopath")
+		gopath, err := ioutil.TempDir("", "gopath")
 		if err != nil {
-			return packit.BuildResult{}, fmt.Errorf("failed to create GOPATH dir: %w", err)
+			return packit.BuildResult{}, fmt.Errorf("failed to create GOPATH directory: %w", err)
 		}
 
 		duration, err := clock.Measure(func() error {
@@ -45,15 +45,14 @@ func Build(
 
 		err = os.RemoveAll(gopath)
 		if err != nil {
-			return packit.BuildResult{}, fmt.Errorf("failed to delete temp gopath dir: %w", err)
+			return packit.BuildResult{}, fmt.Errorf("failed to delete GOPATH directory: %w", err)
 		}
 
 		logger.Action("Completed in %s", duration.Round(time.Millisecond))
 		logger.Break()
 
 		return packit.BuildResult{
-			Layers:    []packit.Layer{depcachedirLayer},
-			Processes: nil,
+			Layers: []packit.Layer{depcachedirLayer},
 		}, nil
 	}
 }

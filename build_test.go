@@ -101,6 +101,30 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 	})
 
 	context("failure cases", func() {
+		context("when the get for the depcachedir fails", func() {
+			it.Before(func() {
+				Expect(os.Chmod(layersDir, 0000)).To(Succeed())
+			})
+
+			it.After(func() {
+				Expect(os.Chmod(layersDir, os.ModePerm)).To(Succeed())
+			})
+
+			it("returns an error", func() {
+				_, err := build(packit.BuildContext{
+					WorkingDir: workingDir,
+					CNBPath:    cnbDir,
+					Stack:      "some-stack",
+					BuildpackInfo: packit.BuildpackInfo{
+						Name:    "Some Buildpack",
+						Version: "some-version",
+					},
+					Layers: packit.Layers{Path: layersDir},
+				})
+				Expect(err).To(MatchError(ContainSubstring("permission denied")))
+			})
+		})
+
 		context("when the build process fails", func() {
 			it.Before(func() {
 				buildProcess.ExecuteCall.Returns.Err = errors.New("failed to execute build process")
