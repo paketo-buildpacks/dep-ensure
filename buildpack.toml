@@ -3,6 +3,7 @@ api = "0.2"
 [buildpack]
   id = "paketo-buildpacks/dep-ensure"
   name = "Dep Ensure Buildpack"
+  homepage = "https://github.com/paketo-buildpacks/dep-ensure"
 
 [metadata]
   include_files = [ "bin/build", "bin/detect", "bin/run", "buildpack.toml" ]
