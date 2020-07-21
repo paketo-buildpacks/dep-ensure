@@ -30,7 +30,7 @@ var settings struct {
 		Name string
 	}
 	Config struct {
-		Dep    string `json:"dep"`
+		Dep string `json:"dep"`
 	}
 }
 
@@ -60,14 +60,9 @@ func TestIntegration(t *testing.T) {
 		Execute(root)
 	Expect(err).ToNot(HaveOccurred())
 
-	settings.Buildpacks.DepEnsure.Offline, err = buildpackStore.Get.
-		WithVersion("1.2.3").
-		WithOfflineDependencies().
-		Execute(root)
+	settings.Buildpacks.Dep.Online, err = buildpackStore.Get.
+		Execute(settings.Config.Dep)
 	Expect(err).ToNot(HaveOccurred())
-
-	// todo: when dep is rewritten, point to real dep cnb in integration.json
-	settings.Buildpacks.Dep.Online = settings.Config.Dep
 
 	SetDefaultEventuallyTimeout(10 * time.Second)
 
