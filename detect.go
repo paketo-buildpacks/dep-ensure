@@ -15,7 +15,16 @@ func Detect() packit.DetectFunc {
 			if os.IsNotExist(err) {
 				return packit.DetectResult{}, packit.Fail
 			}
-			return packit.DetectResult{}, fmt.Errorf("Failed to stat Gopkg.toml : %w", err)
+			return packit.DetectResult{}, fmt.Errorf("failed to stat Gopkg.toml: %w", err)
+		}
+
+		_, err = os.Stat(filepath.Join(context.WorkingDir, "vendor"))
+		if err == nil {
+			return packit.DetectResult{}, packit.Fail
+		} else {
+			if !os.IsNotExist(err) {
+				return packit.DetectResult{}, fmt.Errorf("failed to stat vendor directory: %w", err)
+			}
 		}
 
 		return packit.DetectResult{
