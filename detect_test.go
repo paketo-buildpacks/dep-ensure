@@ -65,4 +65,36 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 			Expect(err).To(MatchError(packit.Fail))
 		})
 	})
+
+	context("when there is a vendor directory in the working directory", func() {
+		it.Before(func() {
+			Expect(os.MkdirAll(filepath.Join(workingDir, "vendor"), os.ModePerm)).To(Succeed())
+		})
+
+		it("fails detection", func() {
+			_, err := detect(packit.DetectContext{
+				WorkingDir: workingDir,
+			})
+			Expect(err).To(MatchError(packit.Fail))
+		})
+	})
+
+	context("failure cases", func() {
+		context("the workspace directory cannot be accessed", func() {
+			it.Before(func() {
+				Expect(os.Chmod(workingDir, 0000)).To(Succeed())
+			})
+
+			it.After(func() {
+				Expect(os.Chmod(workingDir, os.ModePerm)).To(Succeed())
+			})
+
+			it("returns an error", func() {
+				_, err := detect(packit.DetectContext{
+					WorkingDir: workingDir,
+				})
+				Expect(err).To(MatchError(ContainSubstring("failed to stat Gopkg.toml:")))
+			})
+		})
+	})
 }
