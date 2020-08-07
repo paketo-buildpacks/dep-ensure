@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/paketo-buildpacks/packit/fs"
 	"github.com/paketo-buildpacks/packit/pexec"
@@ -41,11 +42,12 @@ func (p DepEnsureProcess) Execute(workspace, gopath, depcachedir string) error {
 		return fmt.Errorf("failed to copy application source onto GOPATH: %w", err)
 	}
 
-	p.logs.Subprocess("Running 'dep ensure'")
-
+	args := []string{"ensure"}
 	buffer := bytes.NewBuffer(nil)
+
+	p.logs.Subprocess("Running 'dep %s'", strings.Join(args, " "))
 	err = p.executable.Execute(pexec.Execution{
-		Args:   []string{"ensure"},
+		Args:   args,
 		Dir:    tmpAppPath,
 		Stdout: buffer,
 		Stderr: buffer,
