@@ -15,10 +15,10 @@ import (
 
 func testDefault(t *testing.T, context spec.G, it spec.S) {
 	var (
-		Expect = NewWithT(t).Expect
-
-		pack   occam.Pack
-		docker occam.Docker
+		Expect     = NewWithT(t).Expect
+		Eventually = NewWithT(t).Eventually
+		pack       occam.Pack
+		docker     occam.Docker
 	)
 
 	it.Before(func() {
@@ -75,11 +75,16 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 				Execute(image.ID)
 			Expect(err).NotTo(HaveOccurred())
 
-			logs, err = docker.Container.Logs.Execute(container.ID)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(logs).To(ContainSubstring("Gopkg.lock"))
-			Expect(logs).To(ContainSubstring("vendor/github.com/ZiCog/shiny-thing"))
+			Eventually(func() string {
+				cLogs, err := docker.Container.Logs.Execute(container.ID)
+				Expect(err).NotTo(HaveOccurred())
+				return cLogs.String()
+			}).Should(
+				And(
+					ContainSubstring("Gopkg.lock"),
+					ContainSubstring("vendor/github.com/ZiCog/shiny-thing"),
+				),
+			)
 		})
 	})
 }
