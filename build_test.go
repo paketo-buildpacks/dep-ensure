@@ -89,7 +89,6 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 					Cache:     true,
 				},
 			},
-			Processes: nil,
 		}))
 
 		Expect(buildProcess.ExecuteCall.CallCount).To(Equal(1))
