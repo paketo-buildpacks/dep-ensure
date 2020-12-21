@@ -25,10 +25,12 @@ func Build(
 		logger.Title("%s %s", context.BuildpackInfo.Name, context.BuildpackInfo.Version)
 		logger.Process("Executing build process")
 
-		depcachedirLayer, err := context.Layers.Get("depcachedir", packit.CacheLayer)
+		depcachedirLayer, err := context.Layers.Get("depcachedir")
 		if err != nil {
 			return packit.BuildResult{}, err
 		}
+
+		depcachedirLayer.Cache = true
 
 		gopath, err := ioutil.TempDir("", "gopath")
 		if err != nil {
