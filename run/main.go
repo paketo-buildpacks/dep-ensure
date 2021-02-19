@@ -7,10 +7,11 @@ import (
 	"github.com/paketo-buildpacks/packit"
 	"github.com/paketo-buildpacks/packit/chronos"
 	"github.com/paketo-buildpacks/packit/pexec"
+	"github.com/paketo-buildpacks/packit/scribe"
 )
 
 func main() {
-	logEmitter := depensure.NewLogEmitter(os.Stdout)
+	logEmitter := scribe.NewEmitter(os.Stdout)
 	packit.Run(
 		depensure.Detect(),
 		depensure.Build(

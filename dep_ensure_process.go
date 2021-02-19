@@ -10,6 +10,7 @@ import (
 
 	"github.com/paketo-buildpacks/packit/fs"
 	"github.com/paketo-buildpacks/packit/pexec"
+	"github.com/paketo-buildpacks/packit/scribe"
 )
 
 //go:generate faux --interface Executable --output fakes/executable.go
@@ -19,10 +20,10 @@ type Executable interface {
 
 type DepEnsureProcess struct {
 	executable Executable
-	logs       LogEmitter
+	logs       scribe.Emitter
 }
 
-func NewDepEnsureProcess(executable Executable, logs LogEmitter) DepEnsureProcess {
+func NewDepEnsureProcess(executable Executable, logs scribe.Emitter) DepEnsureProcess {
 	return DepEnsureProcess{
 		executable: executable,
 		logs:       logs,
