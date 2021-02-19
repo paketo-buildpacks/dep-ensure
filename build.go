@@ -8,6 +8,7 @@ import (
 
 	"github.com/paketo-buildpacks/packit"
 	"github.com/paketo-buildpacks/packit/chronos"
+	"github.com/paketo-buildpacks/packit/scribe"
 )
 
 //go:generate faux --interface BuildProcess --output fakes/build_process.go
@@ -17,7 +18,7 @@ type BuildProcess interface {
 
 func Build(
 	buildProcess BuildProcess,
-	logger LogEmitter,
+	logger scribe.Emitter,
 	clock chronos.Clock,
 ) packit.BuildFunc {
 

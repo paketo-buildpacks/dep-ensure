@@ -13,6 +13,7 @@ import (
 	"github.com/paketo-buildpacks/dep-ensure/fakes"
 	"github.com/paketo-buildpacks/packit"
 	"github.com/paketo-buildpacks/packit/chronos"
+	"github.com/paketo-buildpacks/packit/scribe"
 	"github.com/sclevine/spec"
 
 	. "github.com/onsi/gomega"
@@ -52,7 +53,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		logs = bytes.NewBuffer(nil)
 		build = depensure.Build(
 			buildProcess,
-			depensure.NewLogEmitter(logs),
+			scribe.NewEmitter(logs),
 			clock,
 		)
 	})

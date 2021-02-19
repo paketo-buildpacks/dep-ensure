@@ -12,6 +12,7 @@ import (
 	depensure "github.com/paketo-buildpacks/dep-ensure"
 	"github.com/paketo-buildpacks/dep-ensure/fakes"
 	"github.com/paketo-buildpacks/packit/pexec"
+	"github.com/paketo-buildpacks/packit/scribe"
 	"github.com/sclevine/spec"
 
 	. "github.com/onsi/gomega"
@@ -69,7 +70,7 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 		buffer = bytes.NewBuffer(nil)
 		commandOutput = bytes.NewBuffer(nil)
 
-		process = depensure.NewDepEnsureProcess(executable, depensure.NewLogEmitter(buffer))
+		process = depensure.NewDepEnsureProcess(executable, scribe.NewEmitter(buffer))
 	})
 
 	it.After(func() {
