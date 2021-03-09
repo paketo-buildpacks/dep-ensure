@@ -80,14 +80,15 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		Expect(result).To(Equal(packit.BuildResult{
 			Layers: []packit.Layer{
 				{
-					Name:      "depcachedir",
-					Path:      filepath.Join(layersDir, "depcachedir"),
-					SharedEnv: packit.Environment{},
-					BuildEnv:  packit.Environment{},
-					LaunchEnv: packit.Environment{},
-					Build:     false,
-					Launch:    false,
-					Cache:     true,
+					Name:             "depcachedir",
+					Path:             filepath.Join(layersDir, "depcachedir"),
+					SharedEnv:        packit.Environment{},
+					BuildEnv:         packit.Environment{},
+					LaunchEnv:        packit.Environment{},
+					ProcessLaunchEnv: map[string]packit.Environment{},
+					Build:            false,
+					Launch:           false,
+					Cache:            true,
 				},
 			},
 		}))
