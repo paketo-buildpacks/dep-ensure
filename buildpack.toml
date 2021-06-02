@@ -1,12 +1,12 @@
 api = "0.4"
 
 [buildpack]
+  homepage = "https://github.com/paketo-buildpacks/dep-ensure"
   id = "paketo-buildpacks/dep-ensure"
   name = "Paketo Dep Ensure Buildpack"
-  homepage = "https://github.com/paketo-buildpacks/dep-ensure"
 
 [metadata]
-  include-files = [ "bin/build", "bin/detect", "bin/run", "buildpack.toml" ]
+  include-files = ["bin/build", "bin/detect", "bin/run", "buildpack.toml"]
   pre-package = "./scripts/build.sh"
 
 [[stacks]]
