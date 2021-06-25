@@ -2,7 +2,6 @@ package depensure
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -33,7 +32,7 @@ func Build(
 
 		depcachedirLayer.Cache = true
 
-		gopath, err := ioutil.TempDir("", "gopath")
+		gopath, err := os.MkdirTemp("", "gopath")
 		if err != nil {
 			return packit.BuildResult{}, fmt.Errorf("failed to create GOPATH directory: %w", err)
 		}
