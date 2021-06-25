@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -35,22 +34,22 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 	it.Before(func() {
 		var err error
 
-		workspace, err = ioutil.TempDir("", "workspace")
+		workspace, err = os.MkdirTemp("", "workspace")
 		Expect(err).NotTo(HaveOccurred())
 
-		gopath, err = ioutil.TempDir("", "gopath")
+		gopath, err = os.MkdirTemp("", "gopath")
 		Expect(err).NotTo(HaveOccurred())
 
-		depcachedir, err = ioutil.TempDir("", "depcachedir")
+		depcachedir, err = os.MkdirTemp("", "depcachedir")
 		Expect(err).NotTo(HaveOccurred())
 
-		err = ioutil.WriteFile(filepath.Join(workspace, "test.go"), nil, os.ModePerm)
+		err = os.WriteFile(filepath.Join(workspace, "test.go"), nil, os.ModePerm)
 		Expect(err).NotTo(HaveOccurred())
 
 		err = os.MkdirAll(filepath.Join(workspace, "dir1", "dir2"), os.ModePerm)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = ioutil.WriteFile(filepath.Join(workspace, "dir1", "dir2", "somefile.go"), nil, os.ModePerm)
+		err = os.WriteFile(filepath.Join(workspace, "dir1", "dir2", "somefile.go"), nil, os.ModePerm)
 		Expect(err).NotTo(HaveOccurred())
 
 		executable = &fakes.Executable{}
@@ -60,7 +59,7 @@ func testDepEnsureProcess(t *testing.T, context spec.G, it spec.S) {
 				return err
 			}
 
-			if err := ioutil.WriteFile(filepath.Join(gopath, "src", "app", "Gopkg.lock"), nil, 0755); err != nil {
+			if err := os.WriteFile(filepath.Join(gopath, "src", "app", "Gopkg.lock"), nil, 0755); err != nil {
 				return err
 			}
 
