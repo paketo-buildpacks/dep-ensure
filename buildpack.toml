@@ -1,9 +1,11 @@
-api = "0.6"
+api = "0.8"
 
 [buildpack]
+  description = "A buildpack for installing Go modules using dep"
   homepage = "https://github.com/paketo-buildpacks/dep-ensure"
   id = "paketo-buildpacks/dep-ensure"
   name = "Paketo Dep Ensure Buildpack"
+  keywords = ["go", "dep", "ensure", "modules"]
 
   [[buildpack.licenses]]
     type = "Apache-2.0"
