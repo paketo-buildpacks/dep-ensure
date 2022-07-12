@@ -30,7 +30,8 @@ var settings struct {
 		Name string
 	}
 	Config struct {
-		Dep string `json:"dep"`
+		Dep      string   `json:"dep"`
+		Builders []string `json:"builders"`
 	}
 }
 
