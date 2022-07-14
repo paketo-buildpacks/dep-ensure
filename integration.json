@@ -1,4 +1,4 @@
 {
-  "builders" : ["paketobuildpacks/builder:buildpackless-base", "paketobuildpacks/builder-jammy-buildpackless-tiny"],
+  "builders" : ["paketobuildpacks/builder:buildpackless-base",  "paketobuildpacks/builder-jammy-buildpackless-base"],
   "dep": "github.com/paketo-buildpacks/dep"
 }
