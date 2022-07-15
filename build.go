@@ -23,6 +23,9 @@ func Build(
 
 	return func(context packit.BuildContext) (packit.BuildResult, error) {
 		logger.Title("%s %s", context.BuildpackInfo.Name, context.BuildpackInfo.Version)
+		logger.Process("WARNING: This buildpack is deprecated. It will be removed within 30 days. See https://github.com/paketo-buildpacks/go/issues/622.")
+		logger.Break()
+
 		logger.Process("Executing build process")
 
 		depcachedirLayer, err := context.Layers.Get("depcachedir")

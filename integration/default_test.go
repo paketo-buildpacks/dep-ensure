@@ -69,6 +69,8 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 
 					Expect(logs).To(ContainLines(
 						MatchRegexp(fmt.Sprintf(`%s \d+\.\d+\.\d+`, settings.Buildpack.Name)),
+						"  WARNING: This buildpack is deprecated. It will be removed within 30 days. See https://github.com/paketo-buildpacks/go/issues/622.",
+						"",
 						"  Executing build process",
 						"    Running 'dep ensure'",
 						MatchRegexp(`      Completed in ([0-9]*(\.[0-9]*)?[a-z]+)+`),

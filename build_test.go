@@ -22,14 +22,14 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
-		layersDir    string
-		workingDir   string
-		cnbDir       string
+		build        packit.BuildFunc
 		buildProcess *fakes.BuildProcess
+		clock        chronos.Clock
+		cnbDir       string
+		layersDir    string
 		logs         *bytes.Buffer
 		timeStamp    time.Time
-		clock        chronos.Clock
-		build        packit.BuildFunc
+		workingDir   string
 	)
 
 	it.Before(func() {
@@ -96,6 +96,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		Expect(buildProcess.ExecuteCall.Receives.Workspace).To(Equal(workingDir))
 		Expect(buildProcess.ExecuteCall.Returns.Err).To(BeNil())
 		Expect(logs.String()).To(ContainSubstring("Some Buildpack some-version"))
+		Expect(logs.String()).To(ContainSubstring("WARNING: This buildpack is deprecated. It will be removed within 30 days. See https://github.com/paketo-buildpacks/go/issues/622."))
 		Expect(logs.String()).To(ContainSubstring("Executing build process"))
 		Expect(logs.String()).To(ContainSubstring("Completed in "))
 	})
