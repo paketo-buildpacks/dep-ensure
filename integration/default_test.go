@@ -48,51 +48,45 @@ func testDefault(t *testing.T, context spec.G, it spec.S) {
 			Expect(os.RemoveAll(source)).To(Succeed())
 		})
 
-		for _, b := range settings.Config.Builders {
-			builder := b
-			context(fmt.Sprintf("with %s", builder), func() {
-				it("builds successfully", func() {
-					var err error
-					source, err = occam.Source(filepath.Join("testdata", "default"))
-					Expect(err).NotTo(HaveOccurred())
+		it("builds successfully", func() {
+			var err error
+			source, err = occam.Source(filepath.Join("testdata", "default"))
+			Expect(err).NotTo(HaveOccurred())
 
-					var logs fmt.Stringer
-					image, logs, err = pack.Build.
-						WithPullPolicy("never").
-						WithBuildpacks(
-							settings.Buildpacks.Dep.Online,
-							settings.Buildpacks.DepEnsure.Online,
-						).
-						WithBuilder(builder).
-						Execute(name, source)
-					Expect(err).ToNot(HaveOccurred(), logs.String)
+			var logs fmt.Stringer
+			image, logs, err = pack.Build.
+				WithPullPolicy("never").
+				WithBuildpacks(
+					settings.Buildpacks.Dep.Online,
+					settings.Buildpacks.DepEnsure.Online,
+				).
+				Execute(name, source)
+			Expect(err).ToNot(HaveOccurred(), logs.String)
 
-					Expect(logs).To(ContainLines(
-						MatchRegexp(fmt.Sprintf(`%s \d+\.\d+\.\d+`, settings.Buildpack.Name)),
-						"  WARNING: This buildpack is deprecated. It will be removed within 30 days. See https://github.com/paketo-buildpacks/go/issues/622.",
-						"",
-						"  Executing build process",
-						"    Running 'dep ensure'",
-						MatchRegexp(`      Completed in ([0-9]*(\.[0-9]*)?[a-z]+)+`),
-					))
+			Expect(logs).To(ContainLines(
+				MatchRegexp(fmt.Sprintf(`%s \d+\.\d+\.\d+`, settings.Buildpack.Name)),
+				"  WARNING: This buildpack is deprecated. It will be removed within 30 days. See https://github.com/paketo-buildpacks/go/issues/622.",
+				"",
+				"  Executing build process",
+				"    Running 'dep ensure'",
+				MatchRegexp(`      Completed in ([0-9]*(\.[0-9]*)?[a-z]+)+`),
+			))
 
-					container, err = docker.Container.Run.
-						WithCommand("ls -alR /workspace").
-						Execute(image.ID)
-					Expect(err).NotTo(HaveOccurred())
+			container, err = docker.Container.Run.
+				WithCommand("ls -alR /workspace").
+				Execute(image.ID)
+			Expect(err).NotTo(HaveOccurred())
 
-					Eventually(func() string {
-						cLogs, err := docker.Container.Logs.Execute(container.ID)
-						Expect(err).NotTo(HaveOccurred())
-						return cLogs.String()
-					}).Should(
-						And(
-							ContainSubstring("Gopkg.lock"),
-							ContainSubstring("vendor/github.com/ZiCog/shiny-thing"),
-						),
-					)
-				})
-			})
-		}
+			Eventually(func() string {
+				cLogs, err := docker.Container.Logs.Execute(container.ID)
+				Expect(err).NotTo(HaveOccurred())
+				return cLogs.String()
+			}).Should(
+				And(
+					ContainSubstring("Gopkg.lock"),
+					ContainSubstring("vendor/github.com/ZiCog/shiny-thing"),
+				),
+			)
+		})
 	})
 }
