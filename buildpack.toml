@@ -4,7 +4,7 @@ api = "0.7"
   description = "A buildpack for installing Go modules using dep"
   homepage = "https://github.com/paketo-buildpacks/dep-ensure"
   id = "paketo-buildpacks/dep-ensure"
-  name = "Paketo Dep Ensure Buildpack"
+  name = "Paketo Buildpack for Dep Ensure"
   keywords = ["go", "dep", "ensure", "modules"]
 
   [[buildpack.licenses]]
